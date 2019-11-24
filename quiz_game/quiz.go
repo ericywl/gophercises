@@ -18,8 +18,8 @@ type Quiz struct {
 	question, answer string
 }
 
-// ReadQuizCSV reads a CSV file containing quiz questions and answers
-func ReadQuizCSV(filename string) []Quiz {
+// readQuizCSV reads a CSV file containing quiz questions and answers
+func readQuizCSV(filename string) []Quiz {
 	csvFile, _ := os.Open(filename)
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	var quizzes []Quiz
@@ -38,14 +38,14 @@ func ReadQuizCSV(filename string) []Quiz {
 	return quizzes
 }
 
-// ShuffleQuizzes shuffles a quiz array randomly
-func ShuffleQuizzes(quizzes []Quiz) {
+// shuffleQuizzes shuffles a quiz array randomly
+func shuffleQuizzes(quizzes []Quiz) {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(quizzes), func(i, j int) { quizzes[i], quizzes[j] = quizzes[j], quizzes[i] })
 }
 
-// QuizGame starts a quiz game with the given quizzes array
-func QuizGame(quizzes []Quiz, scorePtr *int, ch1 chan string) {
+// quizGame starts a quiz game with the given quizzes array
+func quizGame(quizzes []Quiz, scorePtr *int, ch1 chan string) {
 	reader := bufio.NewReader(os.Stdin)
 	for _, quiz := range quizzes {
 		fmt.Println("Question:", quiz.question)
@@ -82,9 +82,9 @@ func main() {
 		return
 	}
 	// Read and shuffle quizzes
-	quizzes := ReadQuizCSV(csvFileName)
+	quizzes := readQuizCSV(csvFileName)
 	if *shufflePtr {
-		ShuffleQuizzes(quizzes)
+		shuffleQuizzes(quizzes)
 	}
 	// Welcome message
 	fmt.Println("Welcome to the Quiz Game!")
@@ -96,7 +96,7 @@ func main() {
 	// Run quiz game
 	score := 0
 	ch1 := make(chan string, 1)
-	go QuizGame(quizzes, &score, ch1)
+	go quizGame(quizzes, &score, ch1)
 	// Wait for result or timeout
 	select {
 	case result := <-ch1:

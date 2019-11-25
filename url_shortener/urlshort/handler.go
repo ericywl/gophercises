@@ -1,9 +1,11 @@
 package urlshort
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
+	"github.com/boltdb/bolt"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,6 +22,24 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 		} else {
 			fallback.ServeHTTP(w, r)
 		}
+	})
+}
+
+// DBHandler with return an http.HandlerFunc that will attempt
+// to map any paths (keys in the map) to their corresponding
+// URL (values that each key in the map points to, in string format).
+func DBHandler(db *bolt.DB, bucketName []byte, fallback http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		db.View(func(tx *bolt.Tx) error {
+			c := tx.Bucket(bucketName).Cursor()
+			key := []byte(r.URL.Path)
+			if k, v := c.Seek(key); bytes.Equal(k, key) {
+				http.Redirect(w, r, string(v), 308)
+			} else {
+				fallback.ServeHTTP(w, r)
+			}
+			return nil
+		})
 	})
 }
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,17 +15,24 @@ import (
 )
 
 func main() {
-	stories, err := parseAdventureJSON("gopher.json")
-	if err != nil {
-		panic(err)
-	}
-
 	cliPtr := flag.Bool("cli", false, "serves game on command line instead of browser")
+	jsonPtr := flag.String("file", "gopher.json", "JSON file to load stories from")
 	tmplPtr := flag.String("template", "adventure.html", "template file for HTML")
+	introPtr := flag.String("intro", "intro", "name of starting story arc")
 	flag.Parse()
 
+	stories, err := parseAdventureJSON(*jsonPtr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if _, found := stories[*introPtr]; !found {
+		fmt.Printf("%s not in stories JSON!\n", *introPtr)
+		return
+	}
+
 	t := template.Must(template.ParseFiles(*tmplPtr))
-	adv := Adventure{stories, t}
+	adv := Adventure{stories, *introPtr, t}
 
 	if *cliPtr {
 		adv.commandLine()
@@ -47,6 +55,7 @@ type StoryArc struct {
 // Adventure is a collection of StoryArcs
 type Adventure struct {
 	Stories  map[string]StoryArc
+	IntroArc string
 	Template *template.Template
 }
 
@@ -68,7 +77,7 @@ func parseAdventureJSON(filename string) (map[string]StoryArc, error) {
 func (adv Adventure) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	arc := strings.TrimLeft(r.URL.Path, "/")
 	if arc == "" {
-		arc = "intro"
+		arc = adv.IntroArc
 	}
 	if storyArc, found := adv.Stories[arc]; found {
 		err := adv.Template.Execute(w, &storyArc)
@@ -127,7 +136,7 @@ func (adv Adventure) commandLine() {
 			fmt.Println()
 
 		} else {
-			fmt.Println(arc + "not found!")
+			fmt.Println("Error:", arc, "not found!")
 			return
 		}
 	}

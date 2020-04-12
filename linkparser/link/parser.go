@@ -1,4 +1,4 @@
-package main
+package link
 
 import (
 	"bytes"
@@ -12,7 +12,8 @@ type Link struct {
 	Text string
 }
 
-func parseHTML(htmlBytes []byte) []Link {
+// ParseHTML parses HTML bytes for links
+func ParseHTML(htmlBytes []byte) []Link {
 	tokenizer := html.NewTokenizer(bytes.NewReader(htmlBytes))
 	var links []Link
 	var link Link

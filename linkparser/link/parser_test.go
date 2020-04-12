@@ -1,4 +1,4 @@
-package main
+package link
 
 import (
 	"io/ioutil"
@@ -25,7 +25,7 @@ func setupTests() ([]testCase, error) {
 		{
 			{
 				Href: "/other-page",
-				Text: "A link to another page",
+				Text: "A linkparser to another page",
 			},
 		},
 		// ex2
@@ -87,7 +87,7 @@ func Test_parseHTML(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseHTML(tt.args.htmlBytes); !reflect.DeepEqual(got, tt.want) {
+			if got := ParseHTML(tt.args.htmlBytes); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseHTML() = %v, want %v", got, tt.want)
 			}
 		})

@@ -10,7 +10,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	"./urlshort"
+	"github.com/ericywl/gophercises/urlshortener/urlshort"
 )
 
 func main() {

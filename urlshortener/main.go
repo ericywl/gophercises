@@ -8,8 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"./urlshort"
 	"github.com/boltdb/bolt"
+
+	"./urlshort"
 )
 
 func main() {

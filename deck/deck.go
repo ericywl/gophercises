@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -53,13 +54,13 @@ func (c Card) String() string {
 
 	switch c.Value {
 	case 1:
-		sb.WriteString("Ace")
+		sb.WriteString("A")
 	case 11:
-		sb.WriteString("Jack")
+		sb.WriteString("J")
 	case 12:
-		sb.WriteString("Queen")
+		sb.WriteString("Q")
 	case 13:
-		sb.WriteString("King")
+		sb.WriteString("K")
 	default:
 		sb.WriteString(strconv.FormatUint(uint64(c.Value), 10))
 	}
@@ -118,6 +119,7 @@ func buildFilterMap(filter []Card) (map[Card]bool, error) {
 
 // New creates new deck of cards
 func New(opts Opts) ([]Card, error) {
+	rand.Seed(time.Now().UTC().UnixNano())
 	var cards []Card
 
 	filterMap, err := buildFilterMap(opts.Filter)

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ericywl/gophercises/linkparser/link"
+	"github.com/ericywl/gophercises/link"
 )
 
 // BuildSiteMap builds a XML sitemap for the given site

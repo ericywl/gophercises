@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-
 type args struct {
 	htmlBytes []byte
 }
@@ -25,7 +24,7 @@ func setupTests() ([]testCase, error) {
 		{
 			{
 				Href: "/other-page",
-				Text: "A linkparser to another page",
+				Text: "A link to another page",
 			},
 		},
 		// ex2
@@ -72,7 +71,7 @@ func setupTests() ([]testCase, error) {
 		tests = append(tests, testCase{
 			name: "ex" + iStr,
 			args: args{bytes},
-			want: expected[i - 1],
+			want: expected[i-1],
 		})
 	}
 

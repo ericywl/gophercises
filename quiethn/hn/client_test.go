@@ -37,14 +37,6 @@ func TestClient_TopItems(t *testing.T) {
 	}
 }
 
-func TestClient_defaultify(t *testing.T) {
-	var c Client
-	c.defaultify()
-	if c.apiBase != apiBase {
-		t.Errorf("c.apiBase: want %s, got %s", apiBase, c.apiBase)
-	}
-}
-
 func TestClient_GetItem(t *testing.T) {
 	baseURL, teardown := setup()
 	defer teardown()

@@ -17,12 +17,8 @@ type Client struct {
 	apiBase string
 }
 
-// Making the Client zero value useful without forcing users to do something
-// like `NewClient()`
-func (c *Client) defaultify() {
-	if c.apiBase == "" {
-		c.apiBase = apiBase
-	}
+func NewClient() *Client {
+	return &Client{apiBase}
 }
 
 // TopItems returns the ids of roughly 450 top items in decreasing order. These
@@ -32,7 +28,6 @@ func (c *Client) defaultify() {
 // TopItmes does not filter out job listings or anything else, as the type of
 // each item is unknown without further API calls.
 func (c *Client) TopItems() ([]int, error) {
-	c.defaultify()
 	resp, err := http.Get(fmt.Sprintf("%s/topstories.json", c.apiBase))
 	if err != nil {
 		return nil, err
@@ -49,7 +44,6 @@ func (c *Client) TopItems() ([]int, error) {
 
 // GetItem will return the Item defined by the provided ID.
 func (c *Client) GetItem(id int) (Item, error) {
-	c.defaultify()
 	var item Item
 	resp, err := http.Get(fmt.Sprintf("%s/item/%d.json", c.apiBase, id))
 	if err != nil {

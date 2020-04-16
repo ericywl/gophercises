@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ericywl/gophercises/quiethn/hn"
@@ -36,7 +37,7 @@ type result struct {
 }
 
 func getStories(ids []int) []item {
-	var client hn.Client
+	client := hn.NewClient()
 	resultCh := make(chan result)
 
 	for i := 0; i < len(ids); i++ {
@@ -46,7 +47,6 @@ func getStories(ids []int) []item {
 				resultCh <- result{idx: idx, err: err}
 				return
 			}
-
 			resultCh <- result{idx: idx, item: parseHNItem(idx, hnItem)}
 		}(i, ids[i])
 	}
@@ -82,7 +82,7 @@ func min(x, y int) int {
 }
 
 func getTopStories(numStories int) ([]item, error) {
-	var client hn.Client
+	client := hn.NewClient()
 	ids, err := client.TopItems()
 	if err != nil {
 		return nil, err
@@ -106,10 +106,51 @@ func getTopStories(numStories int) ([]item, error) {
 	return stories[:numStories], nil
 }
 
+type storyCache struct {
+	stories    []item
+	timeout    time.Duration
+	expiration time.Time
+	lock       sync.Mutex
+}
+
+func (c *storyCache) getCachedTopStories(numStories int) ([]item, error) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	if time.Now().Sub(c.expiration) < 0 {
+		return c.stories, nil
+	}
+
+	stories, err := getTopStories(numStories)
+	if err != nil {
+		return nil, err
+	}
+
+	c.expiration = time.Now().Add(c.timeout)
+	c.stories = stories
+	return c.stories, nil
+}
+
 func handler(numStories int, tpl *template.Template) http.HandlerFunc {
+	timeout := 4 * time.Second
+	cache := storyCache{timeout: timeout}
+
+	go func() {
+		ticker := time.NewTicker(timeout / 2)
+		for {
+			tempCache := storyCache{timeout: timeout}
+			tempCache.getCachedTopStories(numStories)
+			cache.lock.Lock()
+			cache.stories = tempCache.stories
+			cache.expiration = tempCache.expiration
+			cache.lock.Unlock()
+			<-ticker.C
+		}
+	}()
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		stories, err := getTopStories(numStories)
+		stories, err := cache.getCachedTopStories(numStories)
 		if err != nil {
 			http.Error(w, "Failed to load top stories", http.StatusInternalServerError)
 		}

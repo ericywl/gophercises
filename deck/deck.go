@@ -1,6 +1,8 @@
 package deck
 
 import (
+	cryptoRand "crypto/rand"
+	"encoding/binary"
 	"errors"
 	"math/rand"
 	"sort"
@@ -117,9 +119,20 @@ func buildFilterMap(filter []Card) (map[Card]bool, error) {
 	return filterMap, nil
 }
 
+func seed() {
+	var b [8]byte
+	_, err := cryptoRand.Read(b[:])
+	if err != nil {
+		rand.Seed(time.Now().UTC().UnixNano())
+		return
+	}
+
+	rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
+}
+
 // New creates new deck of cards
 func New(opts Opts) ([]Card, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
+	seed()
 	var cards []Card
 
 	filterMap, err := buildFilterMap(opts.Filter)
